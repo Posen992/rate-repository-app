@@ -1,5 +1,5 @@
 import { Text, View, StyleSheet, Image } from 'react-native-web'
-import theme from '../theme'
+import theme from '../../theme'
 
 import Counter from './Counter'
 
@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
 	fullName: {
 		marginLeft: 15,
 		fontWeight: 'bold',
+		fontFamily: theme.fontFamily.system,
 	},
 	description: {
 		marginLeft: 15,
