@@ -7,7 +7,6 @@ import AppBar from './AppBar'
 
 const styles = StyleSheet.create({
 	container: {
-		// margin: 0,
 		width: '100%',
 	},
 })

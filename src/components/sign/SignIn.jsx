@@ -3,6 +3,12 @@ import { useFormik } from 'formik'
 import theme from '../../theme'
 import * as yup from 'yup'
 
+import useSignIn from '../../hooks/useSignIn'
+import AuthStorage from '../../utils/authStorage'
+import { useNavigate } from 'react-router-native'
+import { useApolloClient } from '@apollo/client';
+import useAuthStorage from '../../hooks/useAuthStorage'
+
 const styles = StyleSheet.create({
 	container: {
 		flexDirection: 'column',
@@ -46,11 +52,27 @@ const validationSchema = yup.object().shape({
 })
 
 const SignIn = () => {
+	const { SignIn } = useSignIn()
+	const authInfo = useAuthStorage()
+	const navigate = useNavigate()
+	const apolloClient = useApolloClient()
+
 	const formik = useFormik({
 		initialValues,
 		validationSchema,
-		onSubmit: (values) => {
-			console.log(values)
+		onSubmit: async (values) => {
+			const { username, password } = values
+			try {
+				const { data } = await SignIn({
+					username,
+					password,
+				})
+				await authInfo.setAccessToken(data.authenticate.accessToken)
+				apolloClient.resetStore()
+				navigate('/')
+			} catch (e) {
+				console.log(e)
+			}
 		},
 	})
 
@@ -65,7 +87,7 @@ const SignIn = () => {
 			<TextInput
 				style={[styles.input, { borderColor: getInputBorderColor('username') }]}
 				placeholder="Username"
-                placeholderTextColor={theme.colors.placeHolder}
+				placeholderTextColor={theme.colors.placeHolder}
 				value={formik.values.username}
 				onChange={formik.handleChange('username')}
 			></TextInput>
@@ -75,7 +97,7 @@ const SignIn = () => {
 			<TextInput
 				style={[styles.input, { borderColor: getInputBorderColor('password') }]}
 				placeholder="Password"
-                placeholderTextColor={theme.colors.placeHolder}
+				placeholderTextColor={theme.colors.placeHolder}
 				value={formik.values.password}
 				onChange={formik.handleChange('password')}
 				secureTextEntry

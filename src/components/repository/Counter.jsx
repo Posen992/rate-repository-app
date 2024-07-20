@@ -17,8 +17,6 @@ const styles = StyleSheet.create({
 		color: theme.colors.darkgray,
 		textAlign: 'center',
 	},
-
-
 })
 
 const Counter = ({ title, count }) => {
