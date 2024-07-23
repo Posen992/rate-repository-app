@@ -1,4 +1,4 @@
-import { Text, View, StyleSheet } from 'react-native-web'
+import { Text, View, StyleSheet } from 'react-native'
 import theme from '../../theme'
 
 const styles = StyleSheet.create({

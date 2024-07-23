@@ -1,7 +1,9 @@
-import { Text, View, StyleSheet, Image } from 'react-native-web'
+import { Text, View, StyleSheet, Image, Pressable } from 'react-native'
+import * as Linking from 'expo-linking'
 import theme from '../../theme'
 
 import Counter from './Counter'
+import { useNavigate } from 'react-router-native'
 
 const styles = StyleSheet.create({
 	flexRowContainer: {
@@ -12,21 +14,22 @@ const styles = StyleSheet.create({
 	},
 
 	container: {
-		margin: 15,
+		backgroundColor: theme.colors.white,
 	},
 
 	baseInfoContainer: {
-		width: '100%',
+		margin: 15,
 	},
 
 	textInfoContainer: {
-		width: 'calc(100% - 40px - 15px)',
+		marginRight: 15,
 	},
 
 	counterContainer: {
-        marginTop: 15,
-        marginLeft:40,
-        marginRight:40,
+		marginTop: 15,
+		marginLeft: 40,
+		marginRight: 40,
+		marginBottom: 15,
 		alignItems: 'center',
 		width: 'calc(100% - 80px)',
 		justifyContent: 'space-between',
@@ -56,11 +59,41 @@ const styles = StyleSheet.create({
 		color: theme.colors.white,
 		borderRadius: 5,
 	},
+
+	openButton: {
+		borderRadius: 5,
+		padding: 10,
+		marginLeft: 15,
+		marginRight: 15,
+		marginBottom: 15,
+		backgroundColor: theme.colors.tagBlue,
+	},
+
+	openButtonText: {
+		color: theme.colors.white,
+		textAlign: 'center',
+	},
 })
 
 const RepositoryItem = ({ item }) => {
+	const navigate = useNavigate()
+
+	const goRepositoryDetail = () => {
+		if (!item.url) {
+			navigate(`/repository/${item.id}`)
+		}
+	}
+
+	const handleGotoGitHub = () => {
+		Linking.openURL(item.url)
+	}
+
 	return (
-		<View style={[styles.container, styles.flexColumnContainer]}>
+		<Pressable
+			style={[styles.container, styles.flexColumnContainer]}
+			testID="repositoryItem"
+			onPress={goRepositoryDetail}
+		>
 			<View style={[styles.flexRowContainer, styles.baseInfoContainer]}>
 				<Image style={styles.avatar} source={{ uri: item.ownerAvatarUrl }} />
 				<View style={[styles.flexColumnContainer, styles.textInfoContainer]}>
@@ -81,7 +114,12 @@ const RepositoryItem = ({ item }) => {
 				<Counter style={styles.counter} title="Reviews" count={item.reviewCount} />
 				<Counter style={styles.counter} title="Rating" count={item.ratingAverage} />
 			</View>
-		</View>
+			{item.url && (
+				<Pressable style={styles.openButton} onPress={handleGotoGitHub}>
+					<Text style={styles.openButtonText}>Open in GitHub</Text>
+				</Pressable>
+			)}
+		</Pressable>
 	)
 }
 

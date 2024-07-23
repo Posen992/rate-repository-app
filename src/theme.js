@@ -10,6 +10,7 @@ const theme = {
 	},
 	colors: {
 		navBarBackground: '#24292e',
+		primaryBackgroundColor: '#E1E5E7',
 		textPrimary: '#24292e',
 		textSecondary: '#586069',
 		primary: '#0366d6',

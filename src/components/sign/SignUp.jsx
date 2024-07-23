@@ -1,8 +1,10 @@
 import { Text, View, StyleSheet, TextInput, Pressable } from 'react-native'
+import { useState } from 'react'
 import { useFormik } from 'formik'
 import theme from '../../theme'
 import * as yup from 'yup'
 
+import useSignUp from '../../hooks/useSignUp'
 import useSignIn from '../../hooks/useSignIn'
 import { useNavigate } from 'react-router-native'
 import { useApolloClient } from '@apollo/client'
@@ -43,38 +45,71 @@ const styles = StyleSheet.create({
 const initialValues = {
 	username: '',
 	password: '',
+	passwordConfirmation: '',
 }
 
 const validationSchema = yup.object().shape({
-	username: yup.string().required('Username is required'),
-	password: yup.string().required('Password is required'),
+	username: yup
+		.string()
+		.required('Username is required')
+		.min(5, 'Username is a required string with a length between 5 and 30')
+		.max(30, 'Username is a required string with a length between 5 and 30'),
+	password: yup
+		.string()
+		.required('Password is required')
+		.min(5, 'Password is a required string with a length between 5 and 50')
+		.max(50, 'Password is a required string with a length between 5 and 50'),
+	passwordConfirmation: yup
+		.string()
+		.oneOf(
+			[yup.ref('password'), null],
+			'Password confirmation matches the password'
+		)
+		.required('Password confirmation is required'),
 })
 
-const SignIn = () => {
+const SignUp = () => {
+	const { SignUp } = useSignUp()
 	const { SignIn } = useSignIn()
 	const authInfo = useAuthStorage()
 	const navigate = useNavigate()
 	const apolloClient = useApolloClient()
+	const [error, setError] = useState(null)
 
 	const onSubmit = async (values) => {
+		const { username, password } = values
+		try {
+			const { data } = await SignUp({
+				username,
+				password,
+			})
+
+			signIn(values)
+		} catch (e) {
+			setError(e.graphQLErrors[0])
+		}
+	}
+
+	const signIn = async (values) => {
 		const { username, password } = values
 		try {
 			const { data } = await SignIn({
 				username,
 				password,
 			})
+
 			await authInfo.setAccessToken(data.authenticate.accessToken)
 			apolloClient.resetStore()
 			navigate('/')
 		} catch (e) {
-			console.log(e)
+			setError(e.graphQLErrors)
 		}
 	}
 
-	return <SignInContainer onSubmit={onSubmit} />
+	return <SignUpContainer onSubmit={onSubmit} error={error} />
 }
 
-export const SignInContainer = ({ onSubmit }) => {
+export const SignUpContainer = ({ onSubmit, error }) => {
 	const formik = useFormik({
 		initialValues,
 		validationSchema,
@@ -89,6 +124,7 @@ export const SignInContainer = ({ onSubmit }) => {
 
 	return (
 		<View style={styles.container}>
+			{error && <Text style={styles.errorText}>{error.message}</Text>}
 			<TextInput
 				testID="usernameInput"
 				style={[styles.input, { borderColor: getInputBorderColor('username') }]}
@@ -111,6 +147,21 @@ export const SignInContainer = ({ onSubmit }) => {
 			{formik.touched.password && formik.errors.password && (
 				<Text style={styles.errorText}>{formik.errors.password}</Text>
 			)}
+			<TextInput
+				style={[
+					styles.input,
+					{ borderColor: getInputBorderColor('passwordConfirmation') },
+				]}
+				placeholder="Password confirmation"
+				placeholderTextColor={theme.colors.placeHolder}
+				value={formik.values.passwordConfirmation}
+				onChangeText={formik.handleChange('passwordConfirmation')}
+				secureTextEntry
+			></TextInput>
+			{formik.touched.passwordConfirmation &&
+				formik.errors.passwordConfirmation && (
+					<Text style={styles.errorText}>{formik.errors.passwordConfirmation}</Text>
+				)}
 			<Pressable style={styles.signInButton} onPress={formik.handleSubmit}>
 				<Text style={styles.signInButtonText}>Sign in</Text>
 			</Pressable>
@@ -118,4 +169,4 @@ export const SignInContainer = ({ onSubmit }) => {
 	)
 }
 
-export default SignIn
+export default SignUp

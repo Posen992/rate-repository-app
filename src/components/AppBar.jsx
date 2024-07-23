@@ -1,18 +1,17 @@
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native'
-import { Link } from 'react-router-native'
+import { Link, useNavigate } from 'react-router-native'
 import Constants from 'expo-constants'
+import { useApolloClient } from '@apollo/client'
 
 import theme from '../theme'
 
 import useAuthStorage from '../hooks/useAuthStorage'
-import { useEffect, useState } from 'react'
-import useMe from '../hooks/useMe'
-import { useApolloClient } from '@apollo/client'
+import useCurrentUser from '../hooks/useCurrentUser'
 
 const styles = StyleSheet.create({
 	container: {
 		paddingTop: Constants.statusBarHeight,
-		height: 60,
+		height: 80,
 		backgroundColor: theme.colors.navBarBackground,
 	},
 
@@ -21,17 +20,21 @@ const styles = StyleSheet.create({
 	},
 
 	title: {
-		margin: 10,
-		marginTop: 30,
+		marginLeft: 10,
+		marginRight: 10,
 		fontSize: 15,
+		lineHeight: 80 - Constants.statusBarHeight,
 		color: theme.colors.white,
 	},
 })
 
 const AppBar = () => {
-	const { data, error, loading, refetch } = useMe()
+	const { data, error, loading, refetch } = useCurrentUser({
+		includeReviews: false,
+	})
 	const authInfo = useAuthStorage()
 	const apolloClient = useApolloClient()
+	const navigate = useNavigate()
 
 	if (loading) {
 		return
@@ -41,6 +44,7 @@ const AppBar = () => {
 		await authInfo.removeAccessToken()
 		refetch()
 		apolloClient.resetStore()
+		navigate('/')
 	}
 
 	return (
@@ -49,17 +53,43 @@ const AppBar = () => {
 				<Link to="/">
 					<Text style={styles.title}>Repositories</Text>
 				</Link>
-				{data.me ? (
-					<Pressable onPress={handleSignOut}>
-						<Text style={styles.title}>Sign out</Text>
-					</Pressable>
+
+				{data?.me ? (
+					<AppItemsAfterSignIn handleSignOut={handleSignOut} />
 				) : (
-					<Link to="/signIn">
-						<Text style={styles.title}>Sign in</Text>
-					</Link>
+					<AppItemsBeforeSignIn />
 				)}
 			</ScrollView>
 		</View>
+	)
+}
+
+const AppItemsBeforeSignIn = () => {
+	return (
+		<>
+			<Link to="/signIn">
+				<Text style={styles.title}>Sign in</Text>
+			</Link>
+			<Link to="/signUp">
+				<Text style={styles.title}>Sign up</Text>
+			</Link>
+		</>
+	)
+}
+
+const AppItemsAfterSignIn = ({ handleSignOut }) => {
+	return (
+		<>
+			<Link to="/createReview">
+				<Text style={styles.title}>Create a review</Text>
+			</Link>
+			<Link to="/myreviews">
+				<Text style={styles.title}>My reviews</Text>
+			</Link>
+			<Pressable onPress={handleSignOut}>
+				<Text style={styles.title}>Sign out</Text>
+			</Pressable>
+		</>
 	)
 }
 

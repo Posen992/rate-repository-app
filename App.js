@@ -8,6 +8,11 @@ import createApolloClient from './src/utils/apolloClient'
 import AuthStorage from './src/utils/authStorage'
 import AuthStorageContext from './src/contexts/AuthStorageContext'
 
+import store from './src/reducers/store'
+import { Provider } from 'react-redux'
+
+
+
 const authStorage = new AuthStorage()
 const apolloClient = createApolloClient(authStorage)
 
@@ -16,11 +21,13 @@ export default function App() {
 
 	return (
 		<NativeRouter>
-			<ApolloProvider client={apolloClient}>
-				<AuthStorageContext.Provider value={authStorage}>
-					<Main />
-				</AuthStorageContext.Provider>
-			</ApolloProvider>
+			<Provider store={store}>
+				<ApolloProvider client={apolloClient}>
+					<AuthStorageContext.Provider value={authStorage}>
+						<Main />
+					</AuthStorageContext.Provider>
+				</ApolloProvider>
+			</Provider>
 		</NativeRouter>
 	)
 }
